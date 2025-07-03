@@ -484,6 +484,11 @@ class User(Base):
     # This tells SQLAlchemy that a User can have a list of posts.
     # It lets us do `my_user.posts` to get a list of their Post objects.
     posts = relationship("Post", back_populates="user", cascade="all, delete-orphan")
+
+print("Syncing models to the database...")
+Base.metadata.create_all(engine)
+print("✅ Database is up to date.")
+
 ```
 
 💡 **Pro-Tip:** The `cascade="all, delete-orphan"` part is super useful. It means if you delete a user, all of their posts will be automatically deleted too. This prevents "orphaned" posts from cluttering up your database.
