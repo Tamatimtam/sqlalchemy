@@ -8,32 +8,66 @@ This guide will walk you through migrating a SQLAlchemy app from a simple file-b
 Before we change anything, let's understand what we're starting with. This is like looking at the blueprints before we start renovating.
 
 ```python
-# The Original Code
+# The Original Code (with comments)
+
+# --- SETUP PHASE ---
+
+# Import all the tools we need from the SQLAlchemy library
 from sqlalchemy import Column, Sequence ,Integer, String, ForeignKey, create_engine
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
+# The "engine" is our main connection to the database.
+# 'sqlite:///orm.db' tells SQLAlchemy to create and use a simple file named 'orm.db'.
+# echo=True is a great debugging tool: it prints every single SQL command that gets executed.
 engine = create_engine('sqlite:///orm.db', echo=True)
 
+# A "session" is our workspace for database operations. Think of it as a "staging area".
+# We first create a "Session" factory that is configured to use our engine...
 Session = sessionmaker(bind=engine)
+# ...and then we create an actual session instance to work with.
 session = Session()
 
+# We create a 'Base' class. All our table models (like the User class below)
+# will inherit from this, which is how SQLAlchemy knows they are database tables.
 Base = declarative_base()
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, Sequence('user_id_seq'), primary_key=True)
-    name = Column(String(50))
-    email = Column(String(50), unique=True)
 
+# --- MODEL DEFINITION PHASE ---
+
+# Here we define what our 'users' table will look like by creating a Python class.
+class User(Base):
+    # This sets the actual table name in the database to 'users'.
+    __tablename__ = 'users'
+
+    # Define the columns for our table.
+    id = Column(Integer, Sequence('user_id_seq'), primary_key=True) # An auto-incrementing ID.
+    name = Column(String(50))                                     # A string for the user's name.
+    email = Column(String(50), unique=True)                       # A string for the email, which must be unique.
+
+
+# --- EXECUTION PHASE ---
+
+# This line checks for all classes that inherit from 'Base' (just our User class for now)
+# and creates the corresponding tables in the database if they don't already exist.
 Base.metadata.create_all(engine)
 
+# Here, we create two User objects in Python's memory.
+# 🚨 BIG CATCH: At this point, these users only exist in our script, NOT in the database yet!
 user1 = User(name='John Doe', email='john.doe@example.com')
 user2 = User(name='Jane Smith', email='jane.smith@example.com')
 
+# Now, we try to ask the database to find a user named 'John Doe'.
+# 🚨 PROBLEM #1: This will fail because we never actually saved 'user1' or 'user2' to the database.
+# The `session.query()` will return `None`.
 user = session.query(User).filter_by(name='John Doe').first()
+
+# This next line will crash the program!
+# 🚨 PROBLEM #2: Since `user` is `None`, trying to access `user.name` will raise an AttributeError.
 print(user.name)
 
+# If the code somehow got here, it would try to delete the `None` user...
 session.delete(user)
+# ...and then commit that (non-existent) change.
 session.commit()
 ```
 
