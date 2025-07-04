@@ -1,4 +1,3 @@
-
 ### **LAMIS v2, Mission 1: The "For the Love of God, Just Work" Foundation**
 
 Today, we're building the front door to our app. A secure, smart door that knows if it's the first time anyone's ever knocked. We'll build the setup page for the first admin and the regular login page for everyone after. No Wazuh, no OPNsense, just pure, solid Flask.
@@ -416,4 +415,152 @@ A route is the Python function that runs when you visit a specific URL.
     @bp.route('/setup', methods=['GET', 'POST'])
     def setup():
         state = InitializationState.query.first()
-        if state and state.setup_completed
+        if state and state.setup_completed:
+            return redirect(url_for('dashboard.index')) # Already set up, go to main page.
+
+        form = SetupForm()
+        # form.validate_on_submit() is magic. It returns True only if the form was
+        # submitted (POST request) AND all validators passed.
+        if form.validate_on_submit():
+            admin = User(username=form.username.data)
+            admin.set_password(form.password.data)
+            db.session.add(admin)
+            
+            state.setup_completed = True # Flip the switch!
+            db.session.add(state)
+            
+            db.session.commit() # Save both changes to the database.
+            
+            login_user(admin)
+            flash('Setup complete! You are now logged in.', 'success')
+            return redirect(url_for('dashboard.index'))
+
+        return render_template('auth/setup.html', form=form)
+
+    @bp.route('/login', methods=['GET', 'POST'])
+    def login():
+        form = LoginForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user is None or not user.check_password(form.password.data):
+                flash('Invalid username or password.', 'danger')
+                return redirect(url_for('auth.login'))
+            
+            login_user(user)
+            return redirect(url_for('dashboard.index'))
+            
+        return render_template('auth/login.html', form=form)
+
+    @bp.route('/logout')
+    @login_required # Ensures only logged-in users can log out.
+    def logout():
+        logout_user()
+        return redirect(url_for('auth.login'))
+    ```
+
+*   `app/dashboard/routes.py`:
+    ```python
+    # app/dashboard/routes.py
+    from flask import render_template, Blueprint
+    from flask_login import login_required
+
+    # The main blueprint for our app. No url_prefix, so it handles the root URL '/'.
+    bp = Blueprint('dashboard', __name__)
+
+    @bp.route('/')
+    @login_required # This decorator is the bouncer. If not logged in, you're not getting in.
+    def index():
+        return render_template('dashboard/index.html')
+    ```
+
+</details>
+
+<details>
+<summary><b>Step 5. 🎨 The UI: HTML Templates with a Dash of Magic</b></summary>
+
+These are the HTML files the user sees. We use **Jinja2**, Flask's templating engine.
+
+> **🤔 Jargon Buster: Jinja2 Templates**
+> Jinja2 lets us mix Python-like logic into our HTML.
+> *   `{{ ... }}`: Prints a variable. `{{ form.username.label }}` prints the HTML `<label>` tag for the username field.
+> *   `{% ... %}`: A statement, like a `for` loop or an `if` block. `{% for error in form.username.errors %}` loops through any validation errors for a field and displays them.
+> *   `url_for('auth.login')`: A Flask helper that generates the correct URL for a route. It's better than hard-coding `/auth/login` because if you change the URL in `routes.py`, `url_for` updates automatically.
+
+**1. `app/templates/auth/setup.html`**:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>LAMIS - Initial Setup</title></head>
+<body>
+    <h1>Initial LAMIS Setup</h1>
+    <p>Welcome! Please create the primary administrator account.</p>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }} <!-- The CSRF protection token! -->
+        <p>{{ form.username.label }}<br>{{ form.username(size=32) }}</p>
+        {% for error in form.username.errors %}<p style="color:red;">{{ error }}</p>{% endfor %}
+        <p>{{ form.password.label }}<br>{{ form.password(size=32) }}</p>
+        {% for error in form.password.errors %}<p style="color:red;">{{ error }}</p>{% endfor %}
+        <p>{{ form.confirm_password.label }}<br>{{ form.confirm_password(size=32) }}</p>
+        {% for error in form.confirm_password.errors %}<p style="color:red;">{{ error }}</p>{% endfor %}
+        <p>{{ form.submit() }}</p>
+    </form>
+</body>
+</html>
+```
+
+**2. `app/templates/auth/login.html`**:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>LAMIS - Sign In</title></head>
+<body>
+    <h1>Sign In to LAMIS</h1>
+    <!-- This block shows any 'flashed' messages from our Python code -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>{{ form.username.label }}<br>{{ form.username(size=32) }}</p>
+        {% for error in form.username.errors %}<p style="color:red;">{{ error }}</p>{% endfor %}
+        <p>{{ form.password.label }}<br>{{ form.password(size=32) }}</p>
+        {% for error in form.password.errors %}<p style="color:red;">{{ error }}</p>{% endfor %}
+        <p>{{ form.submit() }}</p>
+    </form>
+</body>
+</html>
+```
+
+**3. `app/templates/dashboard/index.html`**:
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>LAMIS Dashboard</title></head>
+<body>
+    <h1>Login Successful!</h1>
+    <p>Welcome to the LAMIS Dashboard.</p>
+    <p><a href="{{ url_for('auth.logout') }}">Sign Out</a></p>
+</body>
+</html>
+```
+</details>
+
+### **Let's Fire It Up!**
+
+That was a lot, but you did it. You built a real, structured web application. Let's see it run.
+
+1.  Make sure your PostgreSQL container is running.
+2.  Make sure your `venv` is active.
+3.  In your terminal, run the app:
+    ```bash
+    flask run
+    ```
+4.  Open your browser and go to `http://127.0.0.1:5000`.
+
+You should be immediately sent to the setup page. Create your admin user. You'll then see the "Login Successful!" page. Try signing out. You should see the login page. If you restart the `flask run` command and go to the URL again, it will correctly take you to the login page, because our `InitializationState` switch has been flipped to `True`.
+
+You've built a solid, secure, and state-aware foundation. Every other feature we add will now plug neatly into this structure. Great work.
