@@ -228,26 +228,27 @@ Now we need to connect these models to the actual database using **Flask-Migrate
 
 *   **`app/__init__.py` (Temporary version for setup)**:
     ```python
-    # app/__init__.py
     from flask import Flask
     from flask_sqlalchemy import SQLAlchemy
     from flask_migrate import Migrate
     from config import Config
-
-    db = SQLAlchemy()
+    from app.models import db
+    
+    
     migrate = Migrate()
-
+    
+    
     def create_app(config_class=Config):
         app = Flask(__name__)
         app.config.from_object(config_class)
-
+    
         db.init_app(app)
         migrate.init_app(app, db)
-
-        # We need to import the models here so Flask-Migrate knows they exist.
-        from app.models import user, state
-
+    
+        from app.models import state, user
+    
         return app
+
     ```
 
 *   **`run.py`**:
