@@ -1046,10 +1046,671 @@ The final step is to add the CSS that makes our new UI elements look good and fu
 
 Because CSS is declarative and less about logic, you can copy and paste these files. The important parts to note are the styles for `.is-blocked` and `.activity-actions` which provide direct visual feedback for the new feature.
 
-*   Create `app/static/css/layout.css` and paste the content from the `after.txt` file.
-*   Update `app/static/css/dashboard.css` with the content from the `after.txt` file.
-*   Update `app/static/css/style.css` with the content from the `after.txt` file.
 
+Create the CSS files with the following content:
+
+**Create `app/static/css/layout.css`:**
+
+```css
+/* app/static/css/layout.css */
+:root {
+    --sidebar-width: 260px;
+    --header-height: 60px;
+    --nav-icon-color: #7d8590;
+    --nav-text-color: #e6edf3;
+    --nav-hover-bg: rgba(172, 185, 201, 0.1);
+    --nav-active-bg: #224675;
+    --nav-active-border: #58a6ff;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden; /* Prevent body scrollbars */
+}
+
+.app-wrapper {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--background-color);
+    border-right: 1px solid var(--border-color);
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 10px 20px 10px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+
+.sidebar-header .logo-icon {
+    font-size: 28px;
+    color: var(--primary-color);
+}
+
+.sidebar-header .logo-text h1 {
+    font-size: 1.2em;
+    margin: 0;
+    color: var(--primary-text-color);
+}
+
+
+.sidebar-header .logo-text p {
+    font-size: 0.8em;
+    margin: 0;
+    color: var(--secondary-text-color);
+}
+
+.sidebar-nav {
+    flex-grow: 1;
+}
+
+.sidebar-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar-nav ul li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--nav-text-color);
+    font-weight: 500;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    margin-bottom: 5px;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-nav ul li a .nav-icon {
+    font-size: 20px;
+    color: var(--nav-icon-color);
+    transition: color 0.2s ease;
+}
+
+.sidebar-nav ul li a:hover {
+    background-color: var(--nav-hover-bg);
+}
+
+.sidebar-nav ul li a:hover .nav-icon {
+    color: var(--primary-text-color);
+}
+
+.sidebar-nav ul li a.active {
+    background-color: var(--nav-active-bg);
+    color: white;
+    border-left-color: var(--nav-active-border);
+}
+
+.sidebar-nav ul li a.active .nav-icon {
+    color: white;
+}
+
+.sidebar-footer {
+    padding: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.sidebar-footer a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--secondary-text-color);
+    transition: color 0.2s ease;
+}
+
+.sidebar-footer a:hover {
+    color: var(--primary-text-color);
+}
+
+.main-content {
+    flex-grow: 1;
+    overflow-y: auto; /* Enable scrolling for content area only */
+    background-color: #0d1117; /* Match body background */
+}
+
+.content-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 40px;
+}
+
+/* Page Header styles */
+.page-header h1 {
+    font-size: 2em;
+    margin: 0 0 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.page-header h1 i {
+    color: var(--primary-color);
+}
+.page-header p {
+    color: var(--secondary-text-color);
+    margin-top: 0;
+    max-width: 80ch;
+}
+
+/* Table styles for manage pages */
+.table-container {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+th {
+    background-color: rgba(255, 255, 255, 0.05);
+    font-size: 0.9em;
+    text-transform: uppercase;
+    color: var(--secondary-text-color);
+}
+td .ip-address {
+    font-weight: bold;
+    color: var(--primary-text-color);
+}
+.btn-unblock {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 0.85em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.btn-unblock:hover {
+    background-color: #d63031;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 20px 0;
+    gap: 10px;
+}
+.btn-page {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--primary-text-color);
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+.btn-page.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.page-info {
+    color: var(--secondary-text-color);
+    font-size: 0.9em;
+}
+```
+
+**Update `app/static/css/dashboard.css`:**
+
+```css
+.activity-feed {
+    margin-top: 20px;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 24px;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-header h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.4em;
+    color: var(--primary-text-color);
+}
+
+.activity-header h2 i {
+    color: var(--primary-color);
+}
+
+.activity-count {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    color: var(--secondary-text-color);
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.activity-link {
+    text-decoration: none !important;
+    color: inherit;
+    display: block;
+}
+
+.activity-link:hover,
+.activity-link:visited,
+.activity-link:focus {
+    text-decoration: none !important;
+    color: inherit;
+}
+
+.activity-item {
+    display: flex !important;
+    align-items: center;
+    padding: 16px !important;
+    background: #21262d !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    margin-bottom: 12px !important;
+    position: relative;
+}
+
+.activity-item:last-child {
+    margin-bottom: 0 !important;
+}
+
+.activity-item:hover {
+    background: rgba(88, 166, 255, 0.1) !important;
+    border-color: rgba(88, 166, 255, 0.3) !important;
+    transform: translateX(4px);
+}
+
+.activity-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    font-size: 16px;
+}
+
+.activity-icon i.critical {
+    color: var(--danger-color);
+    background: rgba(248, 81, 73, 0.1);
+    padding: 12px;
+    border-radius: 50%;
+}
+
+.activity-icon i.high {
+    color: var(--warning-color);
+    background: rgba(227, 179, 65, 0.1);
+    padding: 12px;
+    border-radius: 50%;
+}
+
+.activity-icon i.medium {
+    color: var(--primary-color);
+    background: rgba(88, 166, 255, 0.1);
+    padding: 12px;
+    border-radius: 50%;
+}
+
+.activity-icon i.low {
+    color: var(--secondary-text-color);
+    background: rgba(125, 133, 144, 0.1);
+    padding: 12px;
+    border-radius: 50%;
+}
+
+.activity-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.activity-title {
+    font-weight: 500;
+    color: var(--primary-text-color);
+    margin-bottom: 8px;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.activity-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    color: var(--secondary-text-color);
+}
+
+.meta-item i {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.level-10, .level-11, .level-12, .level-13, .level-14, .level-15 {
+    color: var(--danger-color) !important;
+}
+
+.level-7, .level-8, .level-9 {
+    color: var(--warning-color) !important;
+}
+
+.level-4, .level-5, .level-6 {
+    color: var(--primary-color) !important;
+}
+
+.activity-arrow {
+    flex-shrink: 0;
+    margin-left: 16px;
+    color: var(--secondary-text-color);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover .activity-arrow {
+    color: var(--primary-color);
+    transform: translateX(4px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--secondary-text-color);
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: var(--success-color);
+    margin-bottom: 16px;
+    display: block;
+}
+
+.empty-state p {
+    margin: 0 0 8px 0;
+    font-size: 1.1em;
+    color: var(--primary-text-color);
+}
+
+.empty-state small {
+    font-size: 0.9em;
+    color: var(--secondary-text-color);
+}
+
+@media (max-width: 768px) {
+    .activity-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .activity-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .activity-item {
+        padding: 12px;
+    }
+    
+    .activity-icon {
+        width: 36px;
+        height: 36px;
+        margin-right: 12px;
+    }
+}
+
+/* NEW styles for IP Blocking Integration */
+
+.activity-item-wrapper {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+/* Add a subtle red glow to blocked items */
+.activity-item.is-blocked {
+    border-left: 3px solid var(--danger-color);
+    box-shadow: -5px 0 15px -5px rgba(248, 81, 73, 0.3);
+}
+
+/* Style for the IP address in the metadata */
+.meta-item.ip-address {
+    font-family: monospace;
+    font-weight: bold;
+    color: var(--primary-text-color);
+}
+
+/* Style for the little red "blocked" icon */
+.blocked-icon {
+    color: var(--danger-color) !important;
+    font-size: 14px;
+    margin-left: 4px;
+    vertical-align: middle;
+}
+
+/* Action button that appears on hover */
+.activity-actions {
+    position: absolute;
+    right: 50px; /* Position it before the arrow */
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.activity-item-wrapper:hover .activity-actions {
+    opacity: 1;
+    transform: translateY(-50%) translateX(-10px);
+    pointer-events: auto;
+}
+
+.btn-block {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-block:hover {
+    background-color: #d63031;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .activity-actions {
+        display: none; /* Hide hover actions on mobile as it's unreliable */
+    }
+}
+```
+
+**Update `app/static/css/style.css`:**
+
+```css
+:root {
+    --background-color: #0d1117;
+    --surface-color: #161b22;
+    --primary-text-color: #e6edf3;
+    --secondary-text-color: #7d8590;
+    --primary-color: #58a6ff;
+    --border-color: #30363d;
+    --danger-color: #f85149;
+    --success-color: #56d364;
+    --warning-color: #e3b341;
+    --icon-size-sm: 12px;
+    --icon-size-md: 16px;
+    --icon-size-lg: 24px;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background-color);
+    color: var(--primary-text-color);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2em;
+}
+
+.dashboard-header .tagline {
+    color: var(--secondary-text-color);
+    margin-top: 5px;
+}
+
+.dashboard-header .header-actions {
+    float: right;
+}
+.dashboard-header .header-actions .btn {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--primary-text-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    margin-left: 10px;
+    transition: all 0.2s ease;
+}
+.dashboard-header .header-actions .btn:hover {
+    background-color: #2c333e;
+    border-color: var(--secondary-text-color);
+}
+
+.card {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card h3 {
+    margin: 0 0 5px 0;
+    color: var(--secondary-text-color);
+    font-size: 1em;
+    font-weight: normal;
+}
+
+.stat-card .value {
+    font-size: 2.2em;
+    font-weight: 600;
+    color: var(--primary-text-color);
+}
+
+.stat-card .status-protected { color: var(--success-color); }
+.stat-card .status-error { color: var(--danger-color); }
+
+.stat-card .meta {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: var(--secondary-text-color);
+}
+
+.alert-danger {
+    background-color: rgba(248, 81, 73, 0.1);
+    color: var(--danger-color);
+    border: 1px solid var(--danger-color);
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+.alert-danger a {
+    color: var(--primary-color);
+    font-weight: bold;
+    text-decoration: none;
+}
+.alert-danger a:hover {
+    text-decoration: underline;
+}
+
+/* Link reset for activity items */
+.activity-link,
+.activity-link:visited,
+.activity-link:hover,
+.activity-link:focus,
+.activity-link:active {
+    color: inherit !important;
+    text-decoration: none !important;
+}
+
+/* Force activity item styling */
+.activity-feed .activity-item {
+    background-color: #21262d !important;
+    border: 1px solid #30363d !important;
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+}
+
+/* Icon utilities */
+.fi {
+    line-height: 1;
+}
+```
 </details>
 
 ***
