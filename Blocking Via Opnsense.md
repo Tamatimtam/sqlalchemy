@@ -860,6 +860,7 @@ Replace the content of `app/templates/dashboard/index.html` with the following:
         <p class="tagline">Log Analysis and Monitoring System - Monitor and manage your security status</p>
     </header>
 
+    {# Display any flashed error messages for manager connections #}
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -881,10 +882,14 @@ Replace the content of `app/templates/dashboard/index.html` with the following:
             <h3>System Status</h3>
             {% if total_managers > 0 and connected_managers|length == total_managers %}
                 <div class="value status-protected">Protected</div>
+                <div class="meta">{{ connected_managers|length }} of {{ total_managers }} systems operational</div>
+            {% elif total_managers == 0 %}
+                <div class="value status-error">No Indexers</div>
+                <div class="meta"><a href="{{ url_for('managers.manage') }}">Configure an indexer</a></div>
             {% else %}
                 <div class="value status-error">Error</div>
+                <div class="meta">{{ connected_managers|length }} of {{ total_managers }} systems operational</div>
             {% endif %}
-            <div class="meta">{{ connected_managers|length }} of {{ total_managers }} systems operational</div>
         </div>
 
         <div class="card stat-card">
@@ -896,6 +901,11 @@ Replace the content of `app/templates/dashboard/index.html` with the following:
             <h3>Recent Alerts</h3>
             <div class="value">{{ alerts|length }}</div>
             <div class="meta">In the last fetch</div>
+        </div>
+        <div class="card stat-card">
+            <h3>Placeholder</h3>
+            <div class="value">...</div>
+            <div class="meta">...</div>
         </div>
     </div>
 
@@ -913,11 +923,36 @@ Replace the content of `app/templates/dashboard/index.html` with the following:
                     <div class="activity-item-wrapper">
                         <a href="{{ url_for('alerts.detail', manager_id=alert._source_manager_id, index_name=alert._index, alert_id=alert._id) }}" class="activity-link">
                             <div class="activity-item {% if is_blocked %}is-blocked{% endif %}">
-                                <!-- ... (activity item content) ... -->
+                                <div class="activity-icon">
+                                    {% if alert._source.rule.level >= 10 %}
+                                        <i class="fi fi-sr-shield-exclamation critical"></i>
+                                    {% elif alert._source.rule.level >= 7 %}
+                                        <i class="fi fi-sr-triangle-warning high"></i>
+                                    {% elif alert._source.rule.level >= 4 %}
+                                        <i class="fi fi-sr-info medium"></i>
+                                    {% else %}
+                                        <i class="fi fi-sr-eye low"></i>
+                                    {% endif %}
+                                </div>
                                 <div class="activity-content">
                                     <div class="activity-title">{{ alert._source.rule.description }}</div>
                                     <div class="activity-meta">
-                                        <!-- ... (other meta items) ... -->
+                                        <span class="meta-item">
+                                            <i class="fi fi-br-database"></i>
+                                            {{ alert._source_manager_name }}
+                                        </span>
+                                        <span class="meta-item">
+                                            <i class="fi fi-br-computer"></i>
+                                            {{ alert._source.agent.name }}
+                                        </span>
+                                        <span class="meta-item">
+                                            <i class="fi fi-br-clock"></i>
+                                            {{ alert._source.timestamp }}
+                                        </span>
+                                        <span class="meta-item level-{{ alert._source.rule.level }}">
+                                            <i class="fi fi-br-signal-alt-3"></i>
+                                            Level {{ alert._source.rule.level }}
+                                        </span>
                                         {% if src_ip %}
                                         <span class="meta-item ip-address">
                                             <i class="fi fi-br-network-cloud"></i>
@@ -929,7 +964,9 @@ Replace the content of `app/templates/dashboard/index.html` with the following:
                                         {% endif %}
                                     </div>
                                 </div>
-                                <!-- ... (arrow icon) ... -->
+                                <div class="activity-arrow">
+                                    <i class="fi fi-br-angle-right"></i>
+                                </div>
                             </div>
                         </a>
                         {% if src_ip and not is_blocked %}
@@ -948,7 +985,11 @@ Replace the content of `app/templates/dashboard/index.html` with the following:
                 {% endfor %}
             </div>
         {% else %}
-            <!-- ... (empty state) ... -->
+            <div class="empty-state">
+                <i class="fi fi-br-shield-check"></i>
+                <p>No recent alerts found from any active managers.</p>
+                <small>Your systems are running smoothly!</small>
+            </div>
         {% endif %}
     </div>
 {% endblock %}
