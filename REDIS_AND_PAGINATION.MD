@@ -148,23 +148,23 @@ We need to tell our Flask app how to connect to our new Redis container. As per 
 ```
 SECRET_KEY='this-is-a-secret-please-change-it'
 DATABASE_URL='postgresql://postgres:password@localhost:5432/orm_db'
-ENCRYPTION_KEY='A7tR3tgrehdheqAYbjR-Ij1fw_a68OSdcSIk1eIxwtc='
+ENCRYPTION_KEY='???='
 
 # --- NEW: Redis Configuration ---
 REDIS_URL='redis://localhost:6379/0'
 
 # --- OPNsense Firewall Integration ---
 # The base URL of your OPNsense firewall
-OPNSENSE_URL='https://192.168.111.1:8443'
+OPNSENSE_URL='https:///???:8443'
 
 # The API Key generated in OPNsense (System -> Access -> Users -> API Keys)
-OPNSENSE_API_KEY='kKDsqpe1PRXEM7+2RcfdzoxsXknRlibE1yWmnspvNWYIr6RsS+RwRcmGCzr1bBppWlDXgEkJyBVKZ+Id'
+OPNSENSE_API_KEY='???+Id'
 
 # The API Secret corresponding to the key
-OPNSENSE_API_SECRET='4cBopnB3r2o0yqOWCQNbRpCEpuL9mz7g1AFDluaIvW07xKvuqrH4TYn4vf1zmlsnX+zEX4PyndiSLSKE'
+OPNSENSE_API_SECRET='???'
 
 # The EXACT name of the IP Alias you created in OPNsense to hold the blocked IPs
-OPNSENSE_ALIAS_NAME='Tama_Lamis_Alias'
+OPNSENSE_ALIAS_NAME='???'
 ```
 
 **File to Edit:** `/config.py`
