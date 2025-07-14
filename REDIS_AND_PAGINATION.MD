@@ -1855,10 +1855,174 @@ td .ip-address {
 }
 ```
 
-**Files to Edit:** `/app/templates/layouts/base.html` and `/app/templates/managers/manage.html` require minor tweaks to their header structure for better consistency. You can simply copy-paste the full "after" versions of these files.
+**Files to Edit:** `/app/templates/layouts/base.html`
 
-(You can find the full content of `base.html` and `manage.html` in the "after" file list I was provided.)
+```html
+<!-- app/templates/layouts/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block page_title %}LAMIS Dashboard{% endblock %}</title>
+    <!-- Icon Library -->
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-solid-rounded/css/uicons-solid-rounded.css">
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css">
+    
+    <!-- Core and Component Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manager.css') }}">
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fi fi-sr-shield-check logo-icon"></i>
+                <div class="logo-text">
+                    <h1>LAMIS</h1>
+                    <p>Log Analysis & Monitoring</p>
+                </div>
+            </div>
 
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('dashboard.index') }}" class="{{ 'active' if request.blueprint == 'dashboard' else '' }}">
+                            <i class="fi fi-sr-dashboard nav-icon"></i> Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('ip_blocking.manage') }}" class="{{ 'active' if request.blueprint == 'ip_blocking' else '' }}">
+                            <i class="fi fi-sr-lock nav-icon"></i> IP Blocking
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('managers.manage') }}" class="{{ 'active' if request.blueprint == 'managers' else '' }}">
+                            <i class="fi fi-sr-database nav-icon"></i> Manage Indexers
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('auth.logout') }}">
+                    <i class="fi fi-sr-exit nav-icon"></i> Sign Out
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-container">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+
+```
+
+ `/app/templates/managers/manage.html` 
+```html
+{% extends "layouts/base.html" %}
+
+{% block content %}
+    <div class="page-header">
+        <div class="header-content">
+            <h1><i class="fi fi-sr-database"></i> Manage Wazuh Managers</h1>
+            <p>View, add, or remove your Wazuh API connections.</p>
+        </div>
+        <div class="header-actions">
+            <a href="{{ url_for('dashboard.index') }}" class="btn-secondary">
+                <i class="fi fi-br-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+    
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="management-grid">
+        <div class="manager-list card">
+            <h2>Configured Managers</h2>
+            {% if managers %}
+                <ul>
+                {% for manager in managers %}
+                    <li {% if edit_manager and edit_manager.id == manager.id %}class="editing"{% endif %}>
+                        <div class="manager-info">
+                            <strong>{{ manager.name }}</strong>
+                            <span class="manager-url">{{ manager.url }}</span>
+                        </div>
+                        <div class="manager-actions">
+                            {% if not edit_manager or edit_manager.id != manager.id %}
+                                <a href="{{ url_for('managers.manage', edit_id=manager.id) }}" class="btn btn-edit">
+                                    <i class="fi fi-br-pencil"></i> Edit
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('managers.manage') }}" class="btn btn-cancel">
+                                    <i class="fi fi-br-cross"></i> Cancel
+                                </a>
+                            {% endif %}
+                            <form action="{{ url_for('managers.delete', manager_id=manager.id) }}" method="post" style="display: inline;">
+                                <input type="submit" value="Delete" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this manager?');">
+                            </form>
+                        </div>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>No managers configured yet. Add your first manager using the form on the right.</p>
+            {% endif %}
+        </div>
+
+        <div class="add-manager-form card">
+            <h2>{% if edit_manager %}Edit Manager{% else %}Add New Manager{% endif %}</h2>
+            {% if edit_manager %}
+                <div class="edit-notice">
+                    <i class="fi fi-br-info"></i>
+                    You are editing: <strong>{{ edit_manager.name }}</strong>
+                </div>
+            {% endif %}
+            <form action="{% if edit_manager %}{{ url_for('managers.manage', edit_id=edit_manager.id) }}{% else %}{{ url_for('managers.manage') }}{% endif %}" method="post" novalidate>
+                {{ form.hidden_tag() }}
+                <p>
+                    {{ form.name.label }}
+                    {{ form.name(size=32, placeholder="e.g., Production Wazuh") }}
+                </p>
+                <p>
+                    {{ form.url.label }}
+                    {{ form.url(size=32, placeholder="https://your-wazuh-manager:55000") }}
+                </p>
+                <p>
+                    {{ form.username.label }}
+                    {{ form.username(size=32, placeholder="wazuh-api-user") }}
+                </p>
+                <p>
+                    {{ form.password.label }}
+                    {{ form.password(size=32, placeholder="{% if edit_manager %}Leave blank to keep current password{% else %}Your API password{% endif %}") }}
+                </p>
+                <div class="form-actions">
+                    <p>{{ form.submit() }}</p>
+                    {% if edit_manager %}
+                        <a href="{{ url_for('managers.manage') }}" class="btn btn-secondary">Cancel Edit</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+```
 ---
 
 ## Part 5: Tying It All Together
